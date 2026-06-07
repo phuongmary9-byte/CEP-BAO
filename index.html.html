@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CEP Bảo - Interactive Persona Board</title>
+  <style>
+:root {
+  --bg: #f7fbf8;
+  --bg-2: #fff6e5;
+  --ink: #13202b;
+  --muted: rgba(19, 32, 43, .64);
+  --line: rgba(19, 32, 43, .12);
+  --panel: rgba(255, 255, 255, .68);
+  --panel-strong: rgba(255, 255, 255, .86);
+  --teal: #14b8a6;
+  --amber: #f59e0b;
+  --coral: #ff8f70;
+  --violet: #a78bfa;
+  --green: #22c55e;
+  --blue: #0ea5e9;
+  --shadow: 0 24px 70px rgba(40, 60, 70, .14);
+  --radius: 24px;
+  --font: "Segoe UI", Inter, Arial, sans-serif;
+}
+
+body.dark {
+  --bg: #08141a;
+  --bg-2: #161019;
+  --ink: #f5fbff;
+  --muted: rgba(245, 251, 255, .68);
+  --line: rgba(245, 251, 255, .14);
+  --panel: rgba(18, 30, 38, .72);
+  --panel-strong: rgba(22, 35, 44, .92);
+  --shadow: 0 24px 70px rgba(0, 0, 0, .38);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 8% 8%, rgba(84, 234, 215, .45), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(255, 209, 102, .48), transparent 34%),
+    radial-gradient(circle at 80% 72%, rgba(255, 143, 112, .22), transparent 32%),
+    linear-gradient(135deg, var(--bg), var(--bg-2) 55%, #f9efff);
+  min-height: 100vh;
+}
+
+button, input { font: inherit; }
+
+.sidebar {
+  position: fixed;
+  inset: 18px auto 18px 18px;
+  width: 260px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--panel);
+  backdrop-filter: blur(22px);
+  box-shadow: var(--shadow);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-weight: 950;
+  background: linear-gradient(135deg, var(--teal), #ffd166);
+}
+
+.brand strong, .brand small { display: block; }
+.brand small { color: var(--muted); margin-top: 2px; }
+
+nav { display: grid; gap: 8px; }
+
+nav a, .sidebar-tools button, .copy-btn, .filter-bar button {
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 11px 13px;
+  text-decoration: none;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+nav a:hover, .sidebar-tools button:hover, .copy-btn:hover, .filter-bar button:hover,
+.filter-bar button.active {
+  transform: translateY(-1px);
+  border-color: rgba(20, 184, 166, .45);
+  background: rgba(255, 255, 255, .92);
+}
+
+body.dark nav a:hover, body.dark .sidebar-tools button:hover,
+body.dark .copy-btn:hover, body.dark .filter-bar button:hover,
+body.dark .filter-bar button.active {
+  background: rgba(34, 51, 62, .96);
+}
+
+.sidebar-tools {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.shell {
+  width: min(1500px, calc(100% - 320px));
+  margin-left: 300px;
+  padding: 32px 28px 72px;
+}
+
+.hero {
+  min-height: 360px;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 28px;
+  align-items: center;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: 12px;
+}
+
+h1, h2, h3, p { margin-top: 0; }
+
+h1 {
+  font-size: clamp(68px, 9vw, 150px);
+  line-height: .86;
+  letter-spacing: 0;
+  margin-bottom: 22px;
+}
+
+h2 {
+  font-size: clamp(36px, 5vw, 76px);
+  line-height: .94;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 22px;
+  max-width: 680px;
+}
+
+.hero-card, .control-panel, .glass-card, .accordion, .ad-card {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(22px);
+  box-shadow: var(--shadow);
+}
+
+.hero-card {
+  border-radius: 32px;
+  padding: 26px;
+}
+
+.hero-card h3 { font-size: 40px; margin-bottom: 10px; }
+.meta-line { color: var(--muted); font-style: italic; font-weight: 750; }
+
+.control-panel {
+  position: sticky;
+  top: 14px;
+  z-index: 15;
+  border-radius: 26px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.search-box {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.search-box input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 15px 18px;
+  background: var(--panel-strong);
+  color: var(--ink);
+  outline: none;
+}
+
+.quick-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.stat {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .62);
+  border: 1px solid var(--line);
+  font-weight: 850;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+body.dark .stat { background: rgba(255, 255, 255, .06); }
+
+.section {
+  scroll-margin-top: 110px;
+  padding: 80px 0 10px;
+}
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+.section-head p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 20px;
+  font-style: italic;
+  margin-bottom: 0;
+}
+
+.accordion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.accordion {
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.accordion summary {
+  list-style: none;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+}
+
+.accordion summary::-webkit-details-marker { display: none; }
+
+.badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-weight: 950;
+  color: #10202a;
+  background: var(--accent, var(--teal));
+}
+
+.accordion h3 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.12;
+}
+
+.accordion .claim {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.accordion-body {
+  border-top: 1px solid var(--line);
+  padding: 22px 24px 26px;
+}
+
+.content-block {
+  margin: 0 0 18px;
+}
+
+.content-block:last-child { margin-bottom: 0; }
+.content-block h4 {
+  margin: 0 0 9px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+
+ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+li { margin: 7px 0; }
+
+.highlight {
+  background: linear-gradient(90deg, rgba(255, 209, 102, .8), rgba(255, 143, 112, .55));
+  border-radius: 5px;
+  padding: 0 3px;
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.persona-grid.in-context {
+  margin-bottom: 18px;
+}
+
+.glass-card {
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+.glass-card strong { display: block; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+.glass-card span { font-size: 24px; font-weight: 900; }
+
+.journey-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.filter-bar button { min-width: 72px; }
+
+.ad-grid {
+  display: grid;
+  gap: 18px;
+  container-type: inline-size;
+}
+
+.ad-card {
+  border-radius: 28px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: minmax(140px, 170px) minmax(210px, 280px) minmax(560px, 1fr);
+  gap: 20px;
+  align-items: start;
+  border-left: 9px solid var(--accent, var(--teal));
+}
+
+.ad-card > div:nth-child(4) {
+  grid-column: 2 / -1;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .46);
+}
+
+body.dark .ad-card > div:nth-child(4) {
+  background: rgba(255, 255, 255, .05);
+}
+
+.ad-card h3 { margin: 0; font-size: 18px; }
+.ad-card .ad-angle {
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.12;
+}
+
+.voice-text, .footage-text { color: var(--muted); font-weight: 650; line-height: 1.34; }
+.voice-text { font-size: 17px; max-width: 86ch; }
+.footage-text { margin-bottom: 0; }
+
+.copy-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.copy-btn {
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #13202b;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .2s ease, transform .2s ease;
+  z-index: 50;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 1180px) {
+  .sidebar {
+    position: static;
+    width: auto;
+    margin: 14px;
+  }
+  .shell {
+    width: auto;
+    margin: 0;
+    padding: 12px 14px 60px;
+  }
+  .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 28px; }
+  .control-panel { position: static; grid-template-columns: 1fr; }
+  .quick-stats { justify-content: flex-start; }
+  .accordion-grid, .journey-track, .persona-grid { grid-template-columns: 1fr; }
+  .ad-card { grid-template-columns: 1fr; }
+}
+
+@container (min-width: 1280px) {
+  .ad-card {
+    grid-template-columns: 160px minmax(220px, 285px) minmax(600px, 1fr) minmax(220px, 270px);
+  }
+
+  .ad-card > div:nth-child(4) {
+    grid-column: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+}
+
+@container (max-width: 980px) {
+  .ad-card {
+    grid-template-columns: minmax(120px, 150px) minmax(0, 1fr);
+  }
+
+  .ad-card > div:nth-child(3),
+  .ad-card > div:nth-child(4) {
+    grid-column: 2 / -1;
+  }
+}
+
+@container (max-width: 720px) {
+  .ad-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-card > div:nth-child(3),
+  .ad-card > div:nth-child(4) {
+    grid-column: auto;
+  }
+}
+
+@media print {
+  .sidebar, .control-panel, .copy-row, .filter-bar, .toast { display: none !important; }
+  body { background: #fff; color: #111; }
+  .shell { width: 100%; margin: 0; padding: 0; }
+  .section { break-inside: avoid; page-break-inside: avoid; padding-top: 26px; }
+  details { break-inside: avoid; }
+  details:not([open]) .accordion-body { display: block; }
+  .accordion, .ad-card, .glass-card, .hero-card { box-shadow: none; background: #fff; }
+}
+
+</style>
+</head>
+<body>
+  <aside class="sidebar" aria-label="Sidebar navigation">
+    <a class="brand" href="#top" aria-label="CEP Bảo">
+      <span class="brand-mark">B</span>
+      <span>
+        <strong>CEP Bảo</strong>
+        <small>Interactive Board</small>
+      </span>
+    </a>
+    <nav>
+      <a href="#customer-context">Customer Context</a>
+      <a href="#journey">Journey</a>
+      <a href="#cep-core">CEP Core</a>
+      <a href="#ad-library">Ad Angle Library</a>
+    </nav>
+    <div class="sidebar-tools">
+      <button id="openAll" type="button">Mở tất cả</button>
+      <button id="closeAll" type="button">Thu gọn tất cả</button>
+      <button id="themeToggle" type="button">Dark Mode</button>
+      <button id="printBtn" type="button">Print / Export PDF</button>
+    </div>
+  </aside>
+
+  <main id="top" class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Customer Experience Persona</p>
+        <h1>CEP Bảo</h1>
+        <p class="subtitle">Interactive HTML source of truth được chuyển từ bản CEP PDF final.</p>
+      </div>
+      <div class="hero-card" id="personaSummary"></div>
+    </header>
+
+    <section class="control-panel" aria-label="Search and actions">
+      <label class="search-box">
+        <span>Tìm kiếm</span>
+        <input id="searchInput" type="search" placeholder="Insight, Hook, Voice Over, Pain Point, Footage Bank...">
+      </label>
+      <div class="quick-stats" id="dataAudit"></div>
+    </section>
+
+    <section id="customer-context" class="section">
+      <div class="section-head">
+        <p class="eyebrow">Page 01</p>
+        <h2>Customer Context</h2>
+      </div>
+      <div id="personaDetail" class="persona-grid in-context"></div>
+      <div id="customerContextList" class="accordion-grid"></div>
+    </section>
+
+    <section id="journey" class="section">
+      <div class="section-head">
+        <p class="eyebrow">Page 02</p>
+        <h2>Need Emergence Journey</h2>
+        <p>hành trình phát sinh nhu cầu</p>
+      </div>
+      <div id="journeyList" class="journey-track"></div>
+    </section>
+
+    <section id="cep-core" class="section">
+      <div class="section-head">
+        <p class="eyebrow">Page 03</p>
+        <h2>CEP Core</h2>
+        <p>Một tình huống cụ thể làm phát sinh nhu cầu sử dụng sản phẩm.</p>
+      </div>
+      <div id="cepCoreList" class="accordion-grid"></div>
+    </section>
+
+    <section id="ad-library" class="section">
+      <div class="section-head">
+        <p class="eyebrow">Page 04-05</p>
+        <h2>Ad Angle & Voice Over</h2>
+        <p>Creative directions generated from CEP Core</p>
+      </div>
+      <div class="filter-bar" id="angleFilters" aria-label="Ad Angle filters"></div>
+      <div id="adAngleList" class="ad-grid"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+const cepData = {
+  persona: {
+    name: "Bảo",
+    gender: "Nam",
+    age: "30 tuổi",
+    role: "Trưởng nhóm kinh doanh",
+    label: "Bảo | Nam | 30 tuổi | Trưởng nhóm kinh doanh",
+    description: "Persona board / nhóm giao tiếp cao"
+  },
+  customerContext: [
+    {
+      id: "01",
+      title: "TÍNH CHẤT CÔNG VIỆC",
+      claim: "Bắt buộc phối hợp với người khác để hoàn thành.",
+      accent: "#14b8a6",
+      blocks: [
+        { heading: "Bản chất công việc", text: ["Bảo phải giao tiếp, gặp gỡ và cập nhật liên tục.", "Hiệu quả phụ thuộc trực tiếp vào khả năng giao tiếp và tương tác trong từng điểm chạm."] },
+        { heading: "Biểu hiện trong ngày", items: ["Trao đổi đa phòng ban", "Hướng dẫn, quản lý đội nhóm", "Họp, báo cáo, cập nhật tiến độ", "Gặp khách hàng, đối tác"] }
+      ]
+    },
+    {
+      id: "02",
+      title: "ĐỐI TƯỢNG TƯƠNG TÁC",
+      claim: "Tiếp xúc liên tục với nhiều nhóm người trong ngày.",
+      accent: "#22c55e",
+      blocks: [
+        { heading: "Nhóm tương tác", items: ["Đồng nghiệp", "Cấp dưới", "Khách hàng", "Đối tác"] }
+      ]
+    },
+    {
+      id: "03",
+      title: "KHÔNG GIAN LÀM VIỆC",
+      claim: "Môi trường có mức độ tương tác cao.",
+      accent: "#a78bfa",
+      blocks: [
+        { heading: "Không gian", items: ["Văn phòng mở, nhiều người qua lại.", "Nhiều cuộc họp ngắn trong ngày.", "Liên tục di chuyển giữa các khu vực."] }
+      ]
+    },
+    {
+      id: "04",
+      title: "THÓI QUEN GIỮ TỰ TIN GIAO TIẾP",
+      claim: "Bảo vừa duy trì nhịp làm việc, vừa xử lý nhanh cảm giác thiếu tự tin khi giao tiếp.",
+      accent: "#f59e0b",
+      blocks: [
+        { heading: "1. Giữ nhịp & tỉnh táo", items: ["Cà phê nhiều lần", "Trà / nước tăng lực", "Uống nước khi nói nhiều"], text: ["Giúp tỉnh táo, nhưng dễ kéo theo khô miệng, đắng miệng, hơi thở kém tươi."] },
+        { heading: "2. Xử lý nhanh khi thấy ngại", items: ["Kẹo bạc hà / cao su", "Xịt thơm", "Súc miệng nhanh trước họp"], text: ["Tạo cảm giác yên tâm tạm thời, nhưng không xử lý triệt để vấn đề."] }
+      ]
+    },
+    {
+      id: "05",
+      title: "ĐIỂM PHÁT SINH VẤN ĐỀ",
+      claim: "Khi phải nói chuyện gần và gặp nhiều người, cảm giác trong khoang miệng có thể ảnh hưởng trực tiếp đến sự tự tin.",
+      accent: "#ff8f70",
+      blocks: [
+        { heading: "Pain points", items: ["Hơi thở kém tươi mát", "Miệng đắng hoặc khô", "Ngại trao đổi ở khoảng cách gần"] },
+        { heading: "Điểm quan trọng", text: ["Vấn đề không chỉ là hơi thở, mà là sự tự tin khi giao tiếp."] }
+      ]
+    },
+    {
+      id: "06",
+      title: "KEY INSIGHT",
+      claim: "Với Bảo, hơi thở và răng miệng ảnh hưởng trực tiếp đến sự tự tin, thiện cảm và hình ảnh chuyên nghiệp.",
+      accent: "#ffd166",
+      blocks: [
+        { heading: "Insight", text: ["Với Bảo, hơi thở và răng miệng ảnh hưởng trực tiếp đến sự tự tin, thiện cảm và hình ảnh chuyên nghiệp."] }
+      ]
+    }
+  ],
+  journey: [
+    {
+      id: "01",
+      title: "GIAO TIẾP LIÊN TỤC",
+      claim: "Tần suất tương tác cao là nền của ngày làm việc.",
+      accent: "#14b8a6",
+      blocks: [
+        { heading: "Tình huống", items: ["Họp với đội nhóm", "Trao đổi đồng nghiệp", "Làm việc với khách hàng", "Gặp gỡ đối tác"] },
+        { heading: "Điểm nhấn", text: ["Hiệu quả phụ thuộc vào giao tiếp và thiện cảm."] }
+      ]
+    },
+    {
+      id: "02",
+      title: "GIỮ TỰ TIN",
+      claim: "Bảo chủ động giữ vẻ ngoài chỉn chu trước mọi người.",
+      accent: "#f59e0b",
+      blocks: [
+        { heading: "Thói quen trong ngày", items: ["Mang nước trước cuộc họp", "Uống trà / cà phê", "Nhai kẹo bạc hà", "Kiểm tra qua camera", "Dùng kẹo / xịt thơm"] },
+        { heading: "Ghi chú", text: ["Các hành vi giúp xử lý cảm giác thiếu tự tin."] }
+      ]
+    },
+    {
+      id: "03",
+      title: "VẤN ĐỀ",
+      claim: "Sau nhiều giờ giao tiếp, dấu hiệu tích tụ dần.",
+      accent: "#ff8f70",
+      blocks: [
+        { heading: "Dấu hiệu", items: ["Miệng khô, nặng mùi", "Đắng miệng sau trà, cà phê", "Răng miệng lợn cợn", "Thiếu tự tin khi nói gần", "Kẹo / xịt thơm hết tác dụng nhanh, phải dùng lặp lại nhiều lần"] }
+      ]
+    },
+    {
+      id: "04",
+      title: "ẢNH HƯỞNG",
+      claim: "Cảm giác khó chịu bắt đầu chen vào trải nghiệm giao tiếp.",
+      accent: "#a78bfa",
+      blocks: [
+        { heading: "Tác động", items: ["Lo khi nói gần khách hàng", "Thiếu thoải mái khi trao đổi", "Uống thêm nước, che cảm giác", "Khó giữ hình ảnh chuyên nghiệp"] },
+        { heading: "Điểm quan trọng", text: ["Vấn đề không chỉ là hơi thở, mà là sự tự tin bị ảnh hưởng."] }
+      ]
+    },
+    {
+      id: "05",
+      title: "PHÁT SINH NHU CẦU",
+      claim: "Bảo cần một cách giúp khoang miệng dễ chịu hơn.",
+      accent: "#22c55e",
+      blocks: [
+        { heading: "Nhu cầu", items: ["Sạch thoáng hơn", "Tươi mát hơn từ gốc", "Hạn chế mùi quay lại", "Không xử lý tạm nhiều lần"] }
+      ]
+    },
+    {
+      id: "06",
+      title: "MỤC TIÊU CUỐI CÙNG",
+      claim: "Lấy lại sự chủ động trong giao tiếp.",
+      accent: "#14b8a6",
+      blocks: [
+        { heading: "Mục tiêu", items: ["Tự tin nói gần", "Làm chủ trao đổi", "Giữ hình ảnh"] },
+        { heading: "Giá trị cuối cùng", text: ["Giá trị cuối cùng là sự tự tin trước người khác."] }
+      ]
+    },
+    {
+      id: "07",
+      title: "KEY INSIGHT",
+      claim: "Bảo không tìm kiếm một giải pháp chỉ để thơm miệng hay sạch sâu.",
+      accent: "#ffd166",
+      blocks: [
+        { heading: "Insight", text: ["Bảo không tìm kiếm một giải pháp chỉ để thơm miệng hay sạch sâu.", "Bảo tìm kiếm một cách duy trì sự tự tin và hình ảnh chuyên nghiệp trong mọi cuộc giao tiếp.", "Hơi thở thơm tho chỉ là phương tiện; sự tự tin khi xuất hiện trước người khác mới là giá trị thực sự."] }
+      ]
+    }
+  ],
+  cepCore: [
+    {
+      id: "POV",
+      title: "GÓC KỂ",
+      claim: "“Tôi” là đối tác của Bảo",
+      accent: "#ffd166",
+      blocks: [
+        { heading: "Người kể", text: ["Người kể là khách hàng tiềm năng / trưởng phòng mua hàng, người đang đánh giá khả năng hợp tác và hình ảnh chuyên nghiệp của Bảo."] }
+      ]
+    },
+    {
+      id: "M",
+      title: "MOMENT SNAPSHOT",
+      claim: "Cuộc gặp trực tiếp trong phòng họp nhỏ, khoảng cách tiếp xúc gần.",
+      accent: "#14b8a6",
+      blocks: [
+        { heading: "Khoảnh khắc", text: ["Cuộc gặp trực tiếp trong phòng họp nhỏ, khoảng cách tiếp xúc gần.", "Nhân vật “tôi” ngồi đối diện Bảo, lắng nghe Bảo trình bày và thuyết trình."] }
+      ]
+    },
+    {
+      id: "A",
+      title: "INTERACTION CONTEXT",
+      claim: "Bối cảnh tương tác",
+      accent: "#14b8a6",
+      blocks: [
+        { heading: "Bối cảnh", text: ["“Tôi” đang gặp Bảo trong một bối cảnh gần, trực tiếp và có giá trị hợp tác."] },
+        { heading: "Chi tiết", items: ["Phòng họp nhỏ, ngồi đối diện, khoảng cách tiếp xúc gần", "Bảo trình bày giải pháp và thuyết phục về khả năng hợp tác", "Ấn tượng cá nhân ảnh hưởng đến thiện cảm ban đầu"] }
+      ]
+    },
+    {
+      id: "B",
+      title: "PROBLEM SIGNAL I NOTICE",
+      claim: "Tín hiệu “tôi” nhận ra",
+      accent: "#f59e0b",
+      blocks: [
+        { heading: "Tín hiệu", text: ["Trong tương tác gần, vấn đề xuất hiện qua cảm giác và các hành vi xử lý lặp lại."] },
+        { heading: "Chi tiết", items: ["Hơi thở chưa thực sự dễ chịu, có dư vị cà phê hoặc thuốc lá", "Bảo uống nước, dùng kẹo bạc hà hoặc xịt thơm nhiều lần", "Các cách xử lý tạm thời không giữ được cảm giác dễ chịu lâu"] }
+      ]
+    },
+    {
+      id: "C",
+      title: "IMPACT ON ME",
+      claim: "Ảnh hưởng tới “tôi”",
+      accent: "#ff8f70",
+      blocks: [
+        { heading: "Ảnh hưởng", text: ["Tín hiệu nhỏ khiến “tôi” bị kéo khỏi nội dung và bắt đầu chú ý tới trải nghiệm giao tiếp."] },
+        { heading: "Chi tiết", items: ["Khó tập trung hoàn toàn vào phần Bảo đang trình bày", "Có xu hướng giữ khoảng cách xa hơn một chút", "Thiện cảm giảm nhẹ dù năng lực của Bảo vẫn tốt"] }
+      ]
+    },
+    {
+      id: "D",
+      title: "POLITE SILENCE BARRIER",
+      claim: "Vì sao “tôi” không nói thẳng",
+      accent: "#a78bfa",
+      blocks: [
+        { heading: "Rào cản", text: ["Đây là vấn đề nhạy cảm, khó góp ý trực tiếp trong một cuộc gặp công việc."] },
+        { heading: "Chi tiết", items: ["Không đủ thân thiết và sợ làm đối phương mất mặt", "Không muốn tạo tình huống khó xử trong phòng họp", "Vì không ai nói ra, Bảo khó nhận ra tác động thật sự"] }
+      ]
+    },
+    {
+      id: "E",
+      title: "MY INTERACTION ADJUSTMENT",
+      claim: "Cách “tôi” tự điều chỉnh",
+      accent: "#14b8a6",
+      blocks: [
+        { heading: "Điều chỉnh", text: ["“Tôi” không nói ra, nhưng cơ thể và hành vi vẫn tự tạo khoảng cách an toàn hơn."] },
+        { heading: "Chi tiết", items: ["Ngả người ra sau hoặc đứng xa hơn khi trao đổi", "Chuyển trọng tâm sang màn hình, tài liệu hoặc slide", "Giảm những khoảnh khắc nói chuyện trực diện ở khoảng cách gần"] }
+      ]
+    },
+    {
+      id: "F",
+      title: "SELF-REFLECTION → SOLUTION",
+      claim: "Nếu “tôi” ở vị trí của Bảo",
+      accent: "#22c55e",
+      blocks: [
+        { heading: "Tự phản chiếu", text: ["“Tôi” sẽ muốn xử lý vấn đề trước khi bước vào những cuộc gặp cần tạo thiện cảm."] },
+        { heading: "Chi tiết", items: ["Khoang miệng sạch và dễ chịu hơn, không chỉ thơm tạm thời", "Tự tin khi nói gần với khách hàng hoặc đối tác", "Giữ hình ảnh chuyên nghiệp và trải nghiệm giao tiếp tích cực"] }
+      ]
+    },
+    {
+      id: "CT",
+      title: "CORE TENSION",
+      claim: "Người đối diện hiếm khi nói thẳng, nhưng vẫn âm thầm điều chỉnh cách tương tác.",
+      accent: "#ffd166",
+      blocks: [
+        { heading: "Core tension", text: ["Người đối diện hiếm khi nói thẳng, nhưng vẫn âm thầm điều chỉnh cách tương tác.", "Nhu cầu bùng phát khi Bảo cần giữ thiện cảm, sự tự tin và hình ảnh chuyên nghiệp trong giao tiếp gần."] }
+      ]
+    }
+  ],
+  adAngles: [
+    {
+      id: "A",
+      source: "INTERACTION CONTEXT",
+      selectedSituation: "Phòng họp nhỏ, trao đổi trực tiếp.",
+      accent: "#14b8a6",
+      hook: "Những ai hay gặp khách hàng lần đầu chắc hiểu, thiện cảm không chỉ đến từ lời nói.",
+      voiceOver: "Lần đó mình gặp một anh đối tác này. Anh ấy trình bày rất tự tin, nhưng vì ngồi khá gần nên mình bắt đầu nhận ra hơi thở của anh ấy không còn dễ chịu. Không đến mức phải nói ra, nhưng đủ khiến mình bị phân tâm khỏi phần anh ấy đang trình bày. Với những thứ anh ấy đang dùng như kẹo bạc hà hay xịt thơm thì chỉ xử lý tạm thời thôi. Chuẩn bị khoang miệng sạch hơn từ đầu bằng Flossie Ultra S mới giúp duy trì sự tự tin dài lâu hơn khi giao tiếp.",
+      footageBank: ["POV khách hàng nhìn anh ấy mở laptop và ngồi gần bàn.", "Cận cảnh anh ấy mỉm cười bắt đầu trình bày."]
+    },
+    {
+      id: "B",
+      source: "PROBLEM SIGNAL I NOTICE",
+      selectedSituation: "Uống nước, nhai kẹo bạc hà nhiều lần.",
+      accent: "#f59e0b",
+      hook: "Có những dấu hiệu rất nhỏ, nhưng nhìn là biết người kia đang không thật sự tự tin khi nói gần.",
+      voiceOver: "Không biết mọi người có để ý không, có những người cứ nói chuyện được một lúc lại uống nước, rồi lấy kẹo bạc hà ra ăn. Anh đối tác hôm đó cũng vậy. Nhìn là biết anh ấy đang cố xử lý cảm giác khó chịu nào đó trong khoang miệng. Nhưng càng dùng kẹo hay uống nước thì anh ấy lại càng phải lặp lại. Với mình thì kiểu vấn đề này nên được xử lý bằng một giải pháp làm sạch thật sự như Flossie Ultra S, thay vì chỉ che tạm.",
+      footageBank: ["Anh ấy vừa nói vừa nhấp nước nhiều lần.", "Cận cảnh tay lấy kẹo bạc hà, ánh mắt hơi ngập ngừng."]
+    },
+    {
+      id: "C",
+      source: "IMPACT ON ME",
+      selectedSituation: "Khó tập trung hoàn toàn vào phần trình bày.",
+      accent: "#ff8f70",
+      hook: "Có những cuộc họp không tệ, nhưng mình lại nhớ cảm giác khó chịu nhiều hơn nội dung được trình bày.",
+      voiceOver: "Thật lòng mà nói, anh đối tác hôm đó trình bày rất tốt. Nhưng càng trao đổi lâu, mình lại càng chú ý tới cảm giác khó chịu trong cuộc trò chuyện hơn là những gì anh ấy đang nói. Đó là lúc mình nhận ra trải nghiệm giao tiếp quan trọng hơn nhiều người nghĩ. Nếu xử lý được cảm giác trong khoang miệng từ đầu bằng Flossie Ultra S, chắc anh ấy sẽ tự tin hơn rất nhiều khi nói chuyện ở khoảng cách gần.",
+      footageBank: ["POV khách hàng nhìn slide để tránh nhìn trực diện.", "Khách hàng khẽ lùi ghế, biểu cảm mất tập trung."]
+    },
+    {
+      id: "D",
+      source: "POLITE SILENCE BARRIER",
+      selectedSituation: "Không đủ thân thiết để góp ý.",
+      accent: "#a78bfa",
+      hook: "Điều khó nhất là: mình nhận ra vấn đề, nhưng lại không đủ thân để nói với họ.",
+      voiceOver: "Mọi người thử nghĩ xem, nếu đối tác của mình có hơi thở không được dễ chịu hoặc có gì đó khiến cuộc trò chuyện thiếu thoải mái, liệu mình có góp ý thẳng không? Chắc là không, vì chưa đủ thân thiết và sợ làm đối phương mất mặt. Vấn đề là người khác vẫn nhận ra, chỉ là không ai nói ra thôi. Với những người hay gặp khách hàng như anh ấy, chủ động làm sạch khoang miệng bằng Flossie Ultra S trước cuộc gặp sẽ an toàn hơn việc chờ người khác nhắc.",
+      footageBank: ["Khách hàng gật đầu lịch sự nhưng im lặng.", "Cận cảnh nụ cười xã giao, tay ghi chú."]
+    },
+    {
+      id: "E",
+      source: "INTERACTION ADJUSTMENT",
+      selectedSituation: "Chuyển trọng tâm sang tài liệu hoặc slide.",
+      accent: "#22c55e",
+      hook: "Người đối diện có thể không nói gì, nhưng cách họ nhìn sang slide nhiều hơn đã nói lên tất cả.",
+      voiceOver: "Có những tín hiệu rất nhỏ mà nhiều người không nhận ra. Ví dụ người đối diện tự nhiên nhìn vào tài liệu nhiều hơn, chỉ vào slide nhiều hơn hoặc ít tương tác trực diện hơn. Không phải vì họ ghét mình, mà vì trải nghiệm giao tiếp chưa thực sự thoải mái. Đó là những thứ rất khó nhận ra nếu không có ai nói thẳng. Nếu là người phải gặp khách hàng thường xuyên, một khoang miệng sạch và dễ chịu hơn nhờ Flossie Ultra S sẽ giúp mình tự tin nói gần mà không sợ người khác phải tự điều chỉnh khoảng cách.",
+      footageBank: ["Khách hàng đẩy tài liệu ra giữa bàn để kéo khoảng cách.", "Góc nghiêng cho thấy khách hàng hơi ngả người ra sau."]
+    },
+    {
+      id: "F",
+      source: "SELF REFLECTION → SOLUTION",
+      selectedSituation: "Không chỉ thơm tạm thời; tự tin khi nói gần.",
+      accent: "#0ea5e9",
+      hook: "Nếu là anh ấy, mình sẽ muốn biết điều này sớm hơn.",
+      voiceOver: "Nhìn anh ấy vừa trình bày vừa uống nước rồi dùng kẹo bạc hà, mình nghĩ nếu là anh ấy thì mình sẽ muốn xử lý chuyện này từ trước cuộc gặp. Vì khi phải nói gần với khách hàng, chỉ cần hơi thở không dễ chịu một chút là sự tự tin đã bị ảnh hưởng rồi. Kẹo hay xịt thơm chỉ giúp tạm thời. Làm sạch khoang miệng từ đầu bằng Flossie Ultra S sẽ hợp lý hơn để giữ hình ảnh chuyên nghiệp khi giao tiếp gần.",
+      footageBank: ["Anh ấy đứng trước gương chỉnh áo và kiểm tra hơi thở.", "Cut sang cảnh bước vào phòng họp tự tin."]
+    }
+  ]
+};
+
+const state = { query: "", filter: "Tất cả" };
+const byId = (id) => document.getElementById(id);
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;"
+  })[char]);
+}
+
+function highlight(value) {
+  const safe = escapeHtml(value);
+  if (!state.query.trim()) return safe;
+  const pattern = state.query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return safe.replace(new RegExp(pattern, "gi"), (match) => `<mark class="highlight">${match}</mark>`);
+}
+
+function blockHtml(block) {
+  const text = block.text?.map((line) => `<p>${highlight(line)}</p>`).join("") || "";
+  const items = block.items?.length ? `<ul>${block.items.map((item) => `<li>${highlight(item)}</li>`).join("")}</ul>` : "";
+  return `<div class="content-block"><h4>${highlight(block.heading)}</h4>${text}${items}</div>`;
+}
+
+function accordion(item, index) {
+  return `
+    <details class="accordion searchable" style="--accent:${item.accent}" data-text="${escapeHtml(JSON.stringify(item).toLowerCase())}">
+      <summary>
+        <span class="badge">${highlight(item.id)}</span>
+        <span>
+          <h3>${highlight(item.title)}</h3>
+          <p class="claim">${highlight(item.claim)}</p>
+        </span>
+      </summary>
+      <div class="accordion-body">${item.blocks.map(blockHtml).join("")}</div>
+    </details>
+  `;
+}
+
+function renderPersona() {
+  const p = cepData.persona;
+  byId("personaSummary").innerHTML = `<p class="eyebrow">${highlight(p.description)}</p><h3>${highlight(p.name)}</h3><p class="meta-line">${highlight(p.label)}</p>`;
+  byId("personaDetail").innerHTML = [
+    ["Tên", p.name],
+    ["Giới tính", p.gender],
+    ["Tuổi", p.age],
+    ["Vai trò", p.role]
+  ].map(([k, v]) => `<article class="glass-card searchable" data-text="${escapeHtml(v.toLowerCase())}"><strong>${k}</strong><span>${highlight(v)}</span></article>`).join("");
+}
+
+function renderAccordions() {
+  byId("customerContextList").innerHTML = cepData.customerContext.map(accordion).join("");
+  byId("journeyList").innerHTML = cepData.journey.map(accordion).join("");
+  byId("cepCoreList").innerHTML = cepData.cepCore.map(accordion).join("");
+}
+
+function renderAudit() {
+  const counts = [
+    ["Persona", 1],
+    ["Customer Context", cepData.customerContext.length],
+    ["Journey", cepData.journey.length],
+    ["CEP Core", cepData.cepCore.length],
+    ["Ad Angles", cepData.adAngles.length]
+  ];
+  byId("dataAudit").innerHTML = counts.map(([label, count]) => `<span class="stat">${label}: ${count}</span>`).join("");
+}
+
+function renderFilters() {
+  const values = ["Tất cả", "A", "B", "C", "D", "E", "F"];
+  byId("angleFilters").innerHTML = values.map((value) => `<button type="button" class="${state.filter === value ? "active" : ""}" data-filter="${value}">${value}</button>`).join("");
+}
+
+function adCard(item) {
+  return `
+    <article class="ad-card searchable" style="--accent:${item.accent}" data-angle="${item.id}" data-text="${escapeHtml(JSON.stringify(item).toLowerCase())}">
+      <div>
+        <span class="badge">${item.id}</span>
+        <h3>${highlight(item.source)}</h3>
+        <p class="claim">${highlight(item.selectedSituation)}</p>
+      </div>
+      <div>
+        <p class="eyebrow">Ad Angle / Hook</p>
+        <div class="ad-angle">“${highlight(item.hook)}”</div>
+        <div class="copy-row"><button class="copy-btn" data-copy="${escapeHtml(item.hook)}">Copy Hook</button></div>
+      </div>
+      <div>
+        <p class="eyebrow">Voice-over</p>
+        <p class="voice-text">${highlight(item.voiceOver)}</p>
+        <div class="copy-row"><button class="copy-btn" data-copy="${escapeHtml(item.voiceOver)}">Copy Voice Over</button></div>
+      </div>
+      <div>
+        <p class="eyebrow">Behavioral / Footage Bank</p>
+        <ul class="footage-text">${item.footageBank.map((f) => `<li>${highlight(f)}</li>`).join("")}</ul>
+        <div class="copy-row"><button class="copy-btn" data-copy="${escapeHtml(item.footageBank.join("\n"))}">Copy Footage Bank</button></div>
+      </div>
+    </article>
+  `;
+}
+
+function renderAds() {
+  const rows = cepData.adAngles.filter((item) => state.filter === "Tất cả" || item.id === state.filter);
+  byId("adAngleList").innerHTML = rows.map(adCard).join("");
+}
+
+function applySearch() {
+  const query = state.query.trim().toLowerCase();
+  document.querySelectorAll(".searchable").forEach((node) => {
+    const text = node.dataset.text || node.textContent.toLowerCase();
+    node.hidden = Boolean(query) && !text.includes(query);
+  });
+}
+
+function rerender() {
+  renderPersona();
+  renderAccordions();
+  renderFilters();
+  renderAds();
+  applySearch();
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast("Đã copy nội dung."));
+}
+
+function showToast(message) {
+  const toast = byId("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1700);
+}
+
+document.addEventListener("click", (event) => {
+  const filter = event.target.closest("[data-filter]");
+  if (filter) {
+    state.filter = filter.dataset.filter;
+    renderFilters();
+    renderAds();
+    applySearch();
+  }
+
+  const copy = event.target.closest("[data-copy]");
+  if (copy) copyText(copy.dataset.copy);
+});
+
+byId("searchInput").addEventListener("input", (event) => {
+  state.query = event.target.value;
+  rerender();
+});
+
+byId("openAll").addEventListener("click", () => document.querySelectorAll("details").forEach((d) => d.open = true));
+byId("closeAll").addEventListener("click", () => document.querySelectorAll("details").forEach((d) => d.open = false));
+byId("printBtn").addEventListener("click", () => {
+  document.querySelectorAll("details").forEach((d) => d.open = true);
+  window.print();
+});
+byId("themeToggle").addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  byId("themeToggle").textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+});
+
+renderAudit();
+rerender();
+
+</script>
+</body>
+</html>
